@@ -85,18 +85,38 @@
             border-color: #ff5e57; /* Keep the red border */
         }
 
+        /* Highlight Problems Solved for top 5 users */
+        .highlight-solved {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ff5e57; /* Red color to match theme */
+            background-color: #333; /* Dark background to make it stand out */
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        /* Highlight Problems Solved in the table */
+        .highlight-column {
+            font-size: 18px; /* Increased font size for better visibility */
+            font-weight: bold;
+            color: #ff5e57; /* Red color to match the theme */
+            background-color: #333; /* Dark background to make it stand out */
+            padding: 10px; /* Increased padding for better spacing */
+            border-radius: 5px;
+        }
+
         /* Table layout for remaining users */
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 14px;
+            font-size: 18px; /* Increased font size for the whole table */
             margin-top: 40px;
         }
 
         th, td {
-            padding: 12px 16px;
+            padding: 16px 20px; /* Increased padding for better visibility */
             border: 1px solid #444;
-            text-align: left;
+            text-align: center; /* Center-align the columns */
         }
 
         th {
@@ -159,10 +179,41 @@
         a img {
             margin-right: 12px;
         }
+
+        /* Highlight Rank Numbers in White */
+        .highlight-rank {
+            color: white; /* White color for rank numbers */
+            font-weight: bold;
+            font-size: 20px; /* Increased font size for better visibility */
+        }
+
+        /* Make the rank column just wide enough */
+        th:nth-child(1), td:nth-child(1) {
+            width: 60px; /* Adjust width of the rank column */
+        }
+
+        /* Highlight top 5 usernames with clickable links */
+        .highlight-username {
+            color: #ff5e57; /* Red color for top 5 usernames */
+            font-weight: bold;
+            font-size: 18px; /* Larger font for better visibility */
+        }
+
+        /* Style for the Problems Solved count in the table */
+        .highlight-column {
+            font-size: 24px; /* Larger font for problems solved */
+            text-align: center; /* Center the value */
+        }
+
+        /* Style for the Rating in the table */
+        .highlight-rating {
+            font-size: 24px; /* Larger font for rating */
+            color: white; /* White color for rating */
+        }
     </style>
 </head>
 <body>
-    <h1>Code_RED Tracker</h1>
+    <h1>Codeforces Progress Tracker</h1>
     <div class="user-list" id="user-list">
         <p>Fetching data...</p>
     </div>
@@ -235,27 +286,24 @@
                 }
             }
 
-            // Sort users by problems solved in descending order
+            // Sort users by problems solved count
             userData.sort((a, b) => b.solvedCount - a.solvedCount);
 
-            // Generate HTML content for top 5 users in card style
-            let cardContent = `
-                <div class="card-container">
-            `;
-            userData.slice(0, 5).forEach(user => {
+            // Generate HTML content for top 5 users in cards
+            let cardContent = '<div class="card-container">';
+            userData.slice(0, 5).forEach((user, index) => {
                 cardContent += `
                     <div class="card">
                         <img src="${user.avatar}" alt="${user.username}'s avatar">
-                        <a href="https://codeforces.com/profile/${user.username}" target="_blank">
-                            ${user.username} (${user.rating})  <!-- Rating added here -->
-                        </a>
-                        <p>Problems Solved: ${user.solvedCount}</p>
+                        <h3 class="highlight-username"><a href="https://codeforces.com/profile/${user.username}" target="_blank">${user.username}</a></h3>
+                        <p>Rating: ${user.rating}</p>
+                        <p class="highlight-solved">Problems Solved: ${user.solvedCount}</p>
                     </div>
                 `;
             });
             cardContent += `</div>`;
 
-            // Generate HTML content for the remaining users in table format
+            // Generate HTML content for remaining users in table format
             let tableContent = `
                 <table id="user-table">
                     <thead>
@@ -263,6 +311,7 @@
                             <th onclick="sortTable(0)">Rank</th>
                             <th onclick="sortTable(1)">Username</th>
                             <th onclick="sortTable(2)">Problems Solved</th>
+                            <th onclick="sortTable(3)">Rating</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -270,67 +319,24 @@
             userData.slice(5).forEach((user, index) => {
                 tableContent += `
                     <tr>
-                        <td>${index + 6}</td>
-                        <td>
-                            <a href="https://codeforces.com/profile/${user.username}" target="_blank">
-                                <img src="${user.avatar}" alt="${user.username}'s avatar" class="user-avatar">
-                                ${user.username} (${user.rating})  <!-- Rating added here -->
-                            </a>
-                        </td>
-                        <td>${user.solvedCount}</td>
+                        <td class="highlight-rank">${index + 6}</td>
+                        <td><a href="https://codeforces.com/profile/${user.username}" target="_blank">
+                            <img src="${user.avatar}" alt="${user.username}'s avatar" class="user-avatar">
+                            ${user.username}
+                        </a></td>
+                        <td class="highlight-column">${user.solvedCount}</td> <!-- Centered problems solved -->
+                        <td class="highlight-rating">${user.rating}</td> <!-- Centered rating -->
                     </tr>
                 `;
             });
-            tableContent += "</tbody></table>";
+            tableContent += `</tbody></table>`;
 
-            // Update the page
+            // Display data on the webpage
             userListDiv.innerHTML = cardContent + tableContent;
             loader.style.display = "none";
         }
 
-        // Function to sort the table by column index
-        function sortTable(n) {
-            const table = document.getElementById("user-table");
-            let rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
-            switching = true;
-            dir = "asc"; // Set the sorting direction to ascending
-
-            while (switching) {
-                switching = false;
-                rows = table.rows;
-
-                for (i = 1; i < (rows.length - 1); i++) {
-                    shouldSwitch = false;
-                    x = rows[i].getElementsByTagName("TD")[n];
-                    y = rows[i + 1].getElementsByTagName("TD")[n];
-
-                    if (dir == "asc") {
-                        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
-                            shouldSwitch = true;
-                            break;
-                        }
-                    } else if (dir == "desc") {
-                        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
-                            shouldSwitch = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (shouldSwitch) {
-                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-                    switching = true;
-                    switchcount++;
-                } else {
-                    if (switchcount === 0 && dir === "asc") {
-                        dir = "desc";
-                        switching = true;
-                    }
-                }
-            }
-        }
-
-        // Start displaying user progress
+        // Call the function to display user progress
         displayUserProgress();
     </script>
 </body>
